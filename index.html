@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Snake JS</title>
+    <style>
+      body {
+        margin: 0;
+        height: 100vh;
+        display: flex;
+        background-color: navy;
+      }
+      canvas {
+        margin: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas width="400" height="400" id="game" />
+
+    <script>
+      const game = document.getElementById("game");
+      const ctx = game.getContext("2d");
+      ctx.fillStyle = "black";
+      ctx.fillRect(0, 0, game.width, game.height);
+
+      const gridSize = 20;
+      const cellSize = 20;
+      const startX = 5;
+      const startY = 5;
+      const offset = 2;
+      const apple = { x: 10, y: 10 };
+      const tail = [];
+      const snake = {
+        x: startX,
+        y: startY,
+        velocityX: 1,
+        velocityY: 0,
+        length: 1,
+      };
+      const snakeColors = ["#63c74d", "#3e8948", "#265c42", "#193c3e"];
+
+      setInterval(loop, 1000 / 20); // pour appeller le fonction 15 fois par seconde
+      document.addEventListener("keydown", handleMovement);
+
+      function loop() {
+        snake.x += snake.velocityX;
+        snake.y += snake.velocityY;
+
+        // si le serpent est sur le bord gauche il revient sur le bord droit
+        if (snake.x < 0) {
+          snake.x = gridSize - 1;
+        }
+        // si le serpent est sur le bord droit il revient sur le bord gauche
+        else if (snake.x > gridSize - 1) {
+          snake.x = 0;
+        }
+        // si le serpent est sur le bord du haut il revient sur le bord du bas
+        else if (snake.y < 0) {
+          snake.y = gridSize - 1;
+        }
+        // si le serpent est sur le bord du bas il revient sur le bord du haut
+        else if (snake.y > gridSize - 1) {
+          snake.y = 0;
+        }
+
+        // ceci permet d'effacer le dessin precedant( met un fond noire pour une nouvelle frame)
+        ctx.fillStyle = "#181425";
+        ctx.fillRect(0, 0, game.width, game.height);
+
+        ctx.fillStyle = "#ff0044";
+        ctx.fillRect(
+          apple.x * cellSize + offset / 2,
+          apple.y * cellSize + offset / 2,
+          cellSize - offset,
+          cellSize - offset
+        );
+
+        // ceci dessine la nouvelle position du serpent
+        for (let i = 0; i < tail.length; i++) {
+          ctx.fillStyle =
+            snakeColors[Math.min(tail.length - i - 1, snakeColors.length - 1)];
+          ctx.fillRect(
+            tail[i].x * cellSize + offset / 2,
+            tail[i].y * cellSize + offset / 2,
+            cellSize - offset,
+            cellSize - offset
+          );
+
+          if (tail[i].x === snake.x && tail[i].y === snake.y) {
+            die();
+          }
+        }
+
+        /* ajout des elements et augmentation de la taille de tail */
+        tail.push({ x: snake.x, y: snake.y });
+        /* maintient la taille de tail a la valeur de snake.length */
+        while (tail.length > snake.length) {
+          /* Supprime le premier élément du tableau tail et modifie 
+          directement le tableau en décalant tous les éléments 
+          restants vers la gauche. */
+          tail.shift();
+        }
+
+        /* comportement au manger de la pomme, augmentation de la taille et 
+        generation d'une nouvelle pomme */
+        if (snake.x === apple.x && snake.y === apple.y) {
+          snake.length++;
+          placeApple();
+        }
+      }
+
+      function die() {
+        snake.x = startX;
+        snake.y = startY;
+        snake.velocityX = 1;
+        snake.velocityY = 0;
+        snake.length = 1;
+        tail.splice(0, tail.length);
+      }
+
+      function placeApple() {
+        const freeCells = [];
+        for (let i = 0; i < gridSize; i++) {
+          for (let j = 0; j < gridSize; j++) {
+            let isOccupied = tail.some(
+              (segment) => segment.x === i && segment.y === j
+            );
+            if (!isOccupied) {
+              freeCells.push({ x: i, y: j });
+            }
+          }
+        }
+
+        const index = Math.floor(Math.random() * freeCells.length);
+        apple.x = freeCells[index].x;
+        apple.y = freeCells[index].y;
+      }
+
+      function handleMovement(e) {
+        switch (e.key) {
+          case "ArrowDown":
+          case "s":
+            // pour ne pas allez dans la direction opposer au deplacement actuel (sens interdit)
+            if (snake.velocityY === -1) {
+              return;
+            }
+            snake.velocityY = 1;
+            snake.velocityX = 0;
+            break;
+          case "ArrowUp":
+          case "z":
+            // (sens interdit)
+            if (snake.velocityY === 1) {
+              return;
+            }
+            snake.velocityY = -1;
+            snake.velocityX = 0;
+            break;
+          case "ArrowLeft":
+          case "q":
+            // (sens interdit)
+            if (snake.velocityX === 1) {
+              return;
+            }
+            snake.velocityX = -1;
+            snake.velocityY = 0;
+            break;
+          case "ArrowRight":
+          case "d":
+            // (sens interdit)
+            if (snake.velocityX === -1) {
+              return;
+            }
+            snake.velocityX = 1;
+            snake.velocityY = 0;
+        }
+      }
+    </script>
+  </body>
+</html>
