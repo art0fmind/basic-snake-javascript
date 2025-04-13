@@ -1,2 +1,2 @@
 ## Browser preview
-https://art0fmind.github.basic-snake-javascript.io
+https://art0fmind.github.io/basic-snake-javascript
